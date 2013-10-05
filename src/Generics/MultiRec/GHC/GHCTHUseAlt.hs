@@ -71,7 +71,7 @@ data AST :: * -> * where
   ImportDeclIt      :: AST (ImportDecl Name)
   LGRHSIt           :: AST (LGRHS Name)
   LHsBindLRIt       :: AST (LHsBindLR Name Name)
-  LHsBindsLRIt      :: AST (LHsBindsLR Name Name)
+  -- LHsBindsLRIt      :: AST (LHsBindsLR Name Name)
   LHsBindsIt        :: AST (LHsBinds Name)
   LHsCmdTopIt       :: AST (LHsCmdTop Name)
   LHsDeclIt         :: AST (LHsDecl Name)
@@ -92,7 +92,7 @@ data AST :: * -> * where
   OverLitValIt      :: AST (OverLitVal)
   PatIt             :: AST (Pat Name)
   PostTcExprIt      :: AST PostTcExpr
-  PostTcTypeIt      :: AST PostTcType
+  -- PostTcTypeIt      :: AST PostTcType
   RenamedSourceIt   :: AST RenamedSource
   StmtLRIt          :: AST (StmtLR Name Name)
   SyntaxExprIt      :: AST (SyntaxExpr Name)
@@ -118,22 +118,24 @@ data AST :: * -> * where
   LSigListIt        :: AST [LSig Name]
   LStmtListIt       :: AST [LStmt Name]
   LTyClDeclListIt   :: AST [LTyClDecl Name]
-  RecBindsListIt    :: AST [HsRecField Name (GenLocated SrcSpan (HsExpr Name))]
+  -- RecBindsListIt    :: AST [HsRecField Name (GenLocated SrcSpan (HsExpr Name))]
+  RecBindsListIt    :: AST [HsRecField Name (LHsExpr Name)]
   ValBindsOutListIt :: AST [(RecFlag, LHsBinds Name)]
+
+  -- Tuple elements
+  TupRecFlagLHsBindsIt :: AST (RecFlag, LHsBinds Name)
 
 $(deriveEverything
   (DerivOptions {
    familyTypes =
         [ ( [t| ABExport Name          |], "ABExportIt" )
-        , ( [t| Boxity                 |], "BoxityIt" )
         , ( [t| ArithSeqInfo Name      |], "ArithSeqInfoIt"   )
+        , ( [t| Boxity                 |], "BoxityIt" )
         , ( [t| FixityDirection        |], "FixityDirectionIt" )
         , ( [t| FractionalLit          |], "FractionalLitIt" )
         , ( [t| GRHSs Name             |], "GRHSsIt" )
-        , ( [t| LGRHS Name             |], "LGRHSIt" )
         , ( [t| HsArrAppType           |], "HsArrAppTypeIt"   )
         , ( [t| HsBindLR Name Name     |], "HsBindLRIt" )
-        , ( [t| LHsBindLR Name Name    |], "LHsBindLRIt" )
         , ( [t| HsBracket Name         |], "HsBracketIt" )
         , ( [t| HsGroup Name           |], "HsGroupIt" )
         , ( [t| HsIPBinds Name         |], "HsIPBindsIt" )
@@ -149,33 +151,35 @@ $(deriveEverything
         , ( [t| HsSyn.Fixity           |], "FixityIt" )
         , ( [t| HsValBindsLR Name Name |], "HsValBindsLRIt" )
         , ( [t| IE Name                |], "IEIt" )
-        , ( [t| LIE Name               |], "LIEIt" )
+        , ( [t| ImportDecl Name        |], "ImportDeclIt"   )
+        , ( [t| LGRHS Name             |], "LGRHSIt" )
+        , ( [t| LHsBindLR Name Name    |], "LHsBindLRIt" )
         , ( [t| LHsBinds Name          |], "LHsBindsIt" )
         -- , ( [t| LHsBindsLR Name Name   |], "LHsBindsLRIt" )
         , ( [t| LHsCmdTop Name         |], "LHsCmdTopIt" )
         , ( [t| LHsDecl Name           |], "LHsDeclIt" )
         , ( [t| LHsExpr Name           |], "LHsExprIt" )
         , ( [t| LHsType Name           |], "LHsTypeIt" )
-        , ( [t| LInstDecl Name         |],   "LInstDeclIt" )
+        , ( [t| LIE Name               |], "LIEIt" )
         , ( [t| LIPBind Name           |], "LIPBindIt" )
-        -- , ( [t| LImportDecl Name       |], "LImportDeclIt"   )
-        , ( [t| ImportDecl Name        |], "ImportDeclIt"   )
+        , ( [t| LInstDecl Name         |],   "LInstDeclIt" )
         , ( [t| LMatch Name            |], "LMatchIt" )
         , ( [t| LPat Name              |], "LPatIt" )
         , ( [t| LSig Name              |], "LSigIt" )
+        , ( [t| LStmtLR Name Name      |], "LStmtLRIt" )
         , ( [t| Located Name           |], "LocatedIt"   )
         , ( [t| Match Name             |], "MatchIt" )
         , ( [t| MatchGroup Name        |], "MatchGroupIt" )
         , ( [t| OverLitVal             |], "OverLitValIt"   )
         , ( [t| Pat Name               |], "PatIt" )
         , ( [t| PostTcExpr             |], "PostTcExprIt" )
-        , ( [t| PostTcType             |], "PostTcTypeIt" )
         , ( [t| RenamedSource          |], "RenamedSourceIt" )
-        , ( [t| (LStmtLR Name Name)    |], "LStmtLRIt" )
-        , ( [t| (StmtLR Name Name)     |], "StmtLRIt" )
+        , ( [t| StmtLR Name Name       |], "StmtLRIt" )
         , ( [t| SyntaxExpr Name        |], "SyntaxExprIt" )
         , ( [t| TcEvBinds              |], "TcEvBindsIt" )
         , ( [t| Tickish Name           |], "TickishIt"   )
+        -- , ( [t| LImportDecl Name       |], "LImportDeclIt"   )
+        -- , ( [t| PostTcType             |], "PostTcTypeIt" )
 
         -- List elements
         , ( [t| [(RecFlag, LHsBinds Name)] |], "ValBindsOutListIt"   )
@@ -189,7 +193,8 @@ $(deriveEverything
         , ( [t| [LStmt Name]          |],   "LStmtListIt" )
         , ( [t| [LTyClDecl Name]      |],   "LTyClDeclListIt" )
         , ( [t| [LPat Name]           |],   "LPatListIt"        )
-        , ( [t| [HsRecField Name (GenLocated SrcSpan (HsExpr Name))] |],   "RecBindsListIt"    )
+        -- , ( [t| [HsRecField Name (GenLocated SrcSpan (HsExpr Name))] |],   "RecBindsListIt"    )
+        , ( [t| [HsRecField Name (LHsExpr Name)] |],   "RecBindsListIt"    )
         , ( [t| [LMatch Name]         |],   "LMatchListIt"      )
         , ( [t| [LHsCmdTop Name]      |],   "LHsCmdTopListIt"   )
         , ( [t| [LHsBindLR Name Name] |],   "LHsBindLRListIt"   )
@@ -197,6 +202,9 @@ $(deriveEverything
         , ( [t| [LIE Name]            |],   "LIEListIt" )
         -- Maybe elements
         , ( [t| Maybe ((Bool, [LIE Name])) |],   "MaybeBoolLIENamesIt" )
+        -- Tuple elements
+        , ( [t| (RecFlag, LHsBinds Name) |],   "TupRecFlagLHsBindsIt" )
+
         ],
    indexGadtName = "AST",
    constructorNameModifier = defaultConstructorNameModifier,

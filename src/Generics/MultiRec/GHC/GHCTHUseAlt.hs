@@ -335,8 +335,10 @@ instance Show (HsWrapper) where
 instance Show (HsSyn.Fixity) where
     show = showGhc
 
+-- Note: Type and PostTcType are synonyms. Do not show either for now
 instance Show (Type) where
-    show = showGhc
+    -- show = showGhc
+    show _ = "Type/PostTcType"
 
 instance Show DataCon where
     show = showGhc
@@ -390,3 +392,4 @@ instance (OutputableBndr a) => Show (InstDecl a) where
 
 instance (Outputable a) => Show (Located a) where
     show (GHC.L l x) = "(" ++ showGhc l ++ ":" ++ showGhc x ++ ")"
+

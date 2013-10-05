@@ -52,6 +52,7 @@ data AST :: * -> * where
   FixityIt          :: AST (HsSyn.Fixity)
   FractionalLitIt   :: AST (FractionalLit)
   GRHSsIt           :: AST (GRHSs Name)
+  GRHSIt            :: AST (GRHS Name)
   HsArrAppTypeIt    :: AST (HsArrAppType)
   HsBindLRIt        :: AST (HsBindLR Name Name)
   HsBracketIt       :: AST (HsBracket Name)
@@ -71,7 +72,6 @@ data AST :: * -> * where
   ImportDeclIt      :: AST (ImportDecl Name)
   LGRHSIt           :: AST (LGRHS Name)
   LHsBindLRIt       :: AST (LHsBindLR Name Name)
-  -- LHsBindsLRIt      :: AST (LHsBindsLR Name Name)
   LHsBindsIt        :: AST (LHsBinds Name)
   LHsCmdTopIt       :: AST (LHsCmdTop Name)
   LHsDeclIt         :: AST (LHsDecl Name)
@@ -79,7 +79,7 @@ data AST :: * -> * where
   LHsTypeIt         :: AST (LHsType Name)
   LIEIt             :: AST (LIE Name)
   LIPBindIt         :: AST (LIPBind Name)
-  -- LImportDeclIt     :: AST (LImportDecl Name)
+  LImportDeclIt     :: AST (LImportDecl Name)
   LInstDeclIt       :: AST ( LInstDecl Name)
   LMatchIt          :: AST (LMatch Name)
   LPatIt            :: AST (LPat Name)
@@ -134,6 +134,7 @@ $(deriveEverything
         , ( [t| FixityDirection        |], "FixityDirectionIt" )
         , ( [t| FractionalLit          |], "FractionalLitIt" )
         , ( [t| GRHSs Name             |], "GRHSsIt" )
+        , ( [t| GRHS Name              |], "GRHSIt" )
         , ( [t| HsArrAppType           |], "HsArrAppTypeIt"   )
         , ( [t| HsBindLR Name Name     |], "HsBindLRIt" )
         , ( [t| HsBracket Name         |], "HsBracketIt" )
@@ -155,7 +156,6 @@ $(deriveEverything
         , ( [t| LGRHS Name             |], "LGRHSIt" )
         , ( [t| LHsBindLR Name Name    |], "LHsBindLRIt" )
         , ( [t| LHsBinds Name          |], "LHsBindsIt" )
-        -- , ( [t| LHsBindsLR Name Name   |], "LHsBindsLRIt" )
         , ( [t| LHsCmdTop Name         |], "LHsCmdTopIt" )
         , ( [t| LHsDecl Name           |], "LHsDeclIt" )
         , ( [t| LHsExpr Name           |], "LHsExprIt" )
@@ -178,7 +178,7 @@ $(deriveEverything
         , ( [t| SyntaxExpr Name        |], "SyntaxExprIt" )
         , ( [t| TcEvBinds              |], "TcEvBindsIt" )
         , ( [t| Tickish Name           |], "TickishIt"   )
-        -- , ( [t| LImportDecl Name       |], "LImportDeclIt"   )
+        , ( [t| LImportDecl Name       |], "LImportDeclIt"   )
         -- , ( [t| PostTcType             |], "PostTcTypeIt" )
 
         -- List elements
@@ -391,5 +391,7 @@ instance (OutputableBndr a) => Show (InstDecl a) where
     show = showGhc
 
 instance (Outputable a) => Show (Located a) where
-    show (GHC.L l x) = "(" ++ showGhc l ++ ":" ++ showGhc x ++ ")"
+    -- show (GHC.L l x) = "(" ++ showGhc l ++ ":" ++ showGhc x ++ ")"
+    show (GHC.L l x) = "(" ++ "loc" ++ ":" ++ showGhc x ++ ")"
+
 

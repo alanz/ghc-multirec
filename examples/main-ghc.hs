@@ -76,13 +76,15 @@ startEditor ast@(g,i,e,d) =
     intro
     hSetBuffering stdin NoBuffering
     hSetBuffering stdout NoBuffering
-    loop $ enter HsGroupIt g
+    -- loop $ enter HsGroupIt g
+    loop $ enter RenamedSourceIt ast
 
 -- ---------------------------------------------------------------------
 
 -- | Main loop. Prints current location, asks for a command and executes
 -- a navigation operation depending on that command.
-loop :: Loc AST I0 (GHC.HsGroup GHC.Name) -> IO ()
+-- loop :: Loc AST I0 (GHC.HsGroup GHC.Name) -> IO ()
+loop :: Loc AST I0 (GHC.RenamedSource) -> IO ()
 loop l =
   do
     putStr $ (showZipper l) ++ " {" ++ {- typeOfFocus l ++ -}  "}"
@@ -122,7 +124,8 @@ testZipper2 renamed@(g,i,e,d) =
 -- ---------------------------------------------------------------------
 
 -- | Show the current location, with the focus being highlighted in red.
-showZipper :: Loc AST I0 (GHC.HsGroup GHC.Name) -> String
+-- showZipper :: Loc AST I0 (GHC.HsGroup GHC.Name) -> String
+showZipper :: Loc AST I0 (GHC.RenamedSource) -> String
 showZipper l = (GS.spaces $ map ($ 0) $ unK0 (foldZipper focus (\ p x -> K0 (GS.hShowsPrecAlg p x)) l)) ""
   where focus :: AST ix -> ix -> K0 ([Int -> ShowS]) ix
         focus ix x = K0 [\ n -> ("\ESC[01;31m" ++) . GS.showsPrec ix n x . ("\ESC[00m" ++)]

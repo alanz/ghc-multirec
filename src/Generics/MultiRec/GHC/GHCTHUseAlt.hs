@@ -21,11 +21,14 @@ import CostCentre
 import DynFlags
 import FastString
 import GHC
+import HsExpr
+import HsPat
 import HsSyn
 import Name
 import Outputable
 import TcEvidence
 import TypeRep
+import UniqFM
 import Var
 
 -- * Instantiating the library for AST using TH
@@ -42,17 +45,16 @@ data AST :: * -> * -> * where
   -- HsIPName     :: AST a  HsIPName
 -}
 data AST :: * -> * where
+  ABExportIt        :: AST (ABExport Name)
   ArithSeqInfoIt    :: AST (ArithSeqInfo Name)
   BoxityIt          :: AST (Boxity)
-  -- FastStringIt      :: AST (FastString)
   FixityDirectionIt :: AST (FixityDirection)
   FixityIt          :: AST (HsSyn.Fixity)
   FractionalLitIt   :: AST (FractionalLit)
   GRHSsIt           :: AST (GRHSs Name)
-  GenLocatedIt      :: AST (GenLocated SrcSpan (HsBindLR Name Name))
   HsArrAppTypeIt    :: AST (HsArrAppType)
+  HsBindLRIt        :: AST (HsBindLR Name Name)
   HsBracketIt       :: AST (HsBracket Name)
-  -- HsExprIt          :: AST (HsExpr Name)
   HsGroupIt         :: AST (HsGroup Name)
   HsIPBindsIt       :: AST (HsIPBinds Name)
   HsIPNameIt        :: AST (HsIPName)
@@ -65,15 +67,24 @@ data AST :: * -> * where
   HsSpliceIt        :: AST (HsSplice Name)
   HsStmtContextIt   :: AST (HsStmtContext Name)
   HsValBindsLRIt    :: AST (HsValBindsLR Name Name)
+  IEIt              :: AST (IE Name)
+  ImportDeclIt      :: AST (ImportDecl Name)
+  LGRHSIt           :: AST (LGRHS Name)
+  LHsBindLRIt       :: AST (LHsBindLR Name Name)
   LHsBindsLRIt      :: AST (LHsBindsLR Name Name)
+  LHsBindsIt        :: AST (LHsBinds Name)
   LHsCmdTopIt       :: AST (LHsCmdTop Name)
+  LHsDeclIt         :: AST (LHsDecl Name)
   LHsExprIt         :: AST (LHsExpr Name)
   LHsTypeIt         :: AST (LHsType Name)
+  LIEIt             :: AST (LIE Name)
   LIPBindIt         :: AST (LIPBind Name)
-  LImportDeclIt     :: AST (LImportDecl Name)
+  -- LImportDeclIt     :: AST (LImportDecl Name)
+  LInstDeclIt       :: AST ( LInstDecl Name)
   LMatchIt          :: AST (LMatch Name)
   LPatIt            :: AST (LPat Name)
   LSigIt            :: AST (LSig Name)
+  LStmtLRIt         :: AST (LStmtLR Name Name)
   LocatedIt         :: AST (Located Name)
   MatchGroupIt      :: AST (MatchGroup Name)
   MatchIt           :: AST (Match Name)
@@ -82,25 +93,48 @@ data AST :: * -> * where
   PatIt             :: AST (Pat Name)
   PostTcExprIt      :: AST PostTcExpr
   PostTcTypeIt      :: AST PostTcType
-  SrcSpanIt         :: AST (SrcSpan)
+  RenamedSourceIt   :: AST RenamedSource
+  StmtLRIt          :: AST (StmtLR Name Name)
   SyntaxExprIt      :: AST (SyntaxExpr Name)
   TcEvBindsIt       :: AST (TcEvBinds)
   TickishIt         :: AST (Tickish Name)
 
+  -- Maybe elements
+  MaybeBoolLIENamesIt :: AST (Maybe ((Bool, [LIE Name])))
+
+  -- List elements
+  ABExportListIt    :: AST [ABExport Name]
+  LGRHSListIt       :: AST [LGRHS Name]
+  LHsBindLRListIt   :: AST [LHsBindLR Name Name]
+  LHsCmdTopListIt   :: AST [LHsCmdTop Name]
+  LHsDeclListIt     :: AST [LHsDecl Name]
+  LHsExprListIt     :: AST [LHsExpr Name]
+  LIEListIt         :: AST [LIE Name]
+  LIPBindListIt     :: AST [LIPBind Name]
+  LImportDeclListIt :: AST [LImportDecl Name]
+  LInstDeclListIt   :: AST [LInstDecl Name]
+  LMatchListIt      :: AST [LMatch Name]
+  LPatListIt        :: AST [LPat Name]
+  LSigListIt        :: AST [LSig Name]
+  LStmtListIt       :: AST [LStmt Name]
+  LTyClDeclListIt   :: AST [LTyClDecl Name]
+  RecBindsListIt    :: AST [HsRecField Name (GenLocated SrcSpan (HsExpr Name))]
+  ValBindsOutListIt :: AST [(RecFlag, LHsBinds Name)]
 
 $(deriveEverything
   (DerivOptions {
    familyTypes =
-        [ ( [t| Boxity                 |], "BoxityIt" )
+        [ ( [t| ABExport Name          |], "ABExportIt" )
+        , ( [t| Boxity                 |], "BoxityIt" )
         , ( [t| ArithSeqInfo Name      |], "ArithSeqInfoIt"   )
-        -- , ( [t| FastString             |], "FastStringIt" )
         , ( [t| FixityDirection        |], "FixityDirectionIt" )
         , ( [t| FractionalLit          |], "FractionalLitIt" )
         , ( [t| GRHSs Name             |], "GRHSsIt" )
-        , ( [t| GenLocated SrcSpan (HsBindLR Name Name) |], "GenLocatedIt" )
+        , ( [t| LGRHS Name             |], "LGRHSIt" )
         , ( [t| HsArrAppType           |], "HsArrAppTypeIt"   )
+        , ( [t| HsBindLR Name Name     |], "HsBindLRIt" )
+        , ( [t| LHsBindLR Name Name    |], "LHsBindLRIt" )
         , ( [t| HsBracket Name         |], "HsBracketIt" )
-        -- , ( [t| HsExpr Name            |], "HsExpr"   )
         , ( [t| HsGroup Name           |], "HsGroupIt" )
         , ( [t| HsIPBinds Name         |], "HsIPBindsIt" )
         , ( [t| HsIPName               |], "HsIPNameIt" )
@@ -114,12 +148,18 @@ $(deriveEverything
         , ( [t| HsStmtContext Name     |], "HsStmtContextIt" )
         , ( [t| HsSyn.Fixity           |], "FixityIt" )
         , ( [t| HsValBindsLR Name Name |], "HsValBindsLRIt" )
-        , ( [t| LHsBindsLR Name Name   |], "LHsBindsLRIt" )
+        , ( [t| IE Name                |], "IEIt" )
+        , ( [t| LIE Name               |], "LIEIt" )
+        , ( [t| LHsBinds Name          |], "LHsBindsIt" )
+        -- , ( [t| LHsBindsLR Name Name   |], "LHsBindsLRIt" )
         , ( [t| LHsCmdTop Name         |], "LHsCmdTopIt" )
+        , ( [t| LHsDecl Name           |], "LHsDeclIt" )
         , ( [t| LHsExpr Name           |], "LHsExprIt" )
         , ( [t| LHsType Name           |], "LHsTypeIt" )
+        , ( [t| LInstDecl Name         |],   "LInstDeclIt" )
         , ( [t| LIPBind Name           |], "LIPBindIt" )
-        , ( [t| LImportDecl Name       |], "LImportDeclIt"   )
+        -- , ( [t| LImportDecl Name       |], "LImportDeclIt"   )
+        , ( [t| ImportDecl Name        |], "ImportDeclIt"   )
         , ( [t| LMatch Name            |], "LMatchIt" )
         , ( [t| LPat Name              |], "LPatIt" )
         , ( [t| LSig Name              |], "LSigIt" )
@@ -130,16 +170,39 @@ $(deriveEverything
         , ( [t| Pat Name               |], "PatIt" )
         , ( [t| PostTcExpr             |], "PostTcExprIt" )
         , ( [t| PostTcType             |], "PostTcTypeIt" )
-        , ( [t| SrcSpan                |], "SrcSpanIt" )
+        , ( [t| RenamedSource          |], "RenamedSourceIt" )
+        , ( [t| (LStmtLR Name Name)    |], "LStmtLRIt" )
+        , ( [t| (StmtLR Name Name)     |], "StmtLRIt" )
         , ( [t| SyntaxExpr Name        |], "SyntaxExprIt" )
         , ( [t| TcEvBinds              |], "TcEvBindsIt" )
         , ( [t| Tickish Name           |], "TickishIt"   )
+
+        -- List elements
+        , ( [t| [(RecFlag, LHsBinds Name)] |], "ValBindsOutListIt"   )
+        , ( [t| [ABExport Name]       |],   "ABExportListIt" )
+        , ( [t| [LGRHS Name]          |],   "LGRHSListIt" )
+        , ( [t| [LHsDecl Name]        |],   "LHsDeclListIt" )
+        , ( [t| [LHsExpr Name]        |],   "LHsExprListIt" )
+        , ( [t| [LIPBind Name]        |],   "LIPBindListIt" )
+        , ( [t| [LInstDecl Name]      |],   "LInstDeclListIt" )
+        , ( [t| [LSig Name]           |],   "LSigListIt" )
+        , ( [t| [LStmt Name]          |],   "LStmtListIt" )
+        , ( [t| [LTyClDecl Name]      |],   "LTyClDeclListIt" )
+        , ( [t| [LPat Name]           |],   "LPatListIt"        )
+        , ( [t| [HsRecField Name (GenLocated SrcSpan (HsExpr Name))] |],   "RecBindsListIt"    )
+        , ( [t| [LMatch Name]         |],   "LMatchListIt"      )
+        , ( [t| [LHsCmdTop Name]      |],   "LHsCmdTopListIt"   )
+        , ( [t| [LHsBindLR Name Name] |],   "LHsBindLRListIt"   )
+        , ( [t| [LImportDecl Name]    |],   "LImportDeclListIt" )
+        , ( [t| [LIE Name]            |],   "LIEListIt" )
+        -- Maybe elements
+        , ( [t| Maybe ((Bool, [LIE Name])) |],   "MaybeBoolLIENamesIt" )
         ],
    indexGadtName = "AST",
    constructorNameModifier = defaultConstructorNameModifier,
    patternFunctorName = "ThePF",
-   -- verbose = True,
-   verbose = False,
+   verbose = True,
+   -- verbose = False,
    sumMode = Balanced
   }
  ))
@@ -191,14 +254,10 @@ instance (OutputableBndr a, OutputableBndr b) => Show (HsBindLR a b) where
 instance (Outputable a) => Show (HsWithBndrs a) where
     show = showGhc
 
-instance (Outputable a) => Show (GenLocated SrcSpan a) where
-    show = showGhc
-
 instance (OutputableBndr a) => Show (Match a) where
     show (Match pats mtyp rhs) = "(Match " ++ show pats ++ " " ++ show mtyp ++ " " ++ show rhs ++ ")"
 
 instance (OutputableBndr a) => Show (GRHSs a) where
-    -- show (GRHSs rhs local) = "(GRHSs " ++ show rhs ++ " " ++ show local ++ ")"
     show (GRHSs rhs local) = "(GRHSs rhs " ++ show local ++ ")"
 
 instance (OutputableBndr a) => Show (HsLocalBinds a) where
@@ -271,7 +330,7 @@ instance Show (HsSyn.Fixity) where
 instance Show (Type) where
     show = showGhc
 
-instance Show (DataCon) where
+instance Show DataCon where
     show = showGhc
 
 instance Show (RecFlag) where
@@ -285,3 +344,41 @@ instance Show (Module) where
 
 instance Show (CostCentre) where
     show = showGhc
+
+instance Show ModuleName where
+    show = showGhc
+
+instance (OutputableBndr a) => Show (ABExport a) where
+    show = showGhc
+
+instance (OutputableBndr a) => Show (UniqFM a) where
+    show = showGhc
+
+instance (OutputableBndr a) => Show (HsDecl a) where
+    show = showGhc
+
+instance Show TransForm where
+    show = showGhc
+
+instance Outputable TransForm where
+    ppr ThenForm  = ptext (sLit "ThenForm")
+    ppr GroupForm = ptext (sLit "GroupForm")
+
+instance (OutputableBndr a, OutputableBndr b) => Show (ParStmtBlock a b) where
+    show = showGhc
+
+instance Show TcSpecPrags where
+    show = showGhc
+
+instance Outputable TcSpecPrags where
+    ppr IsDefaultMethod = ptext (sLit "IsDefaultMethod")
+    ppr (SpecPrags sps) = ptext (sLit "SpecPrags") <+> ppr sps
+
+instance (OutputableBndr a) => Show (GRHS a) where
+    show = showGhc
+
+instance (OutputableBndr a) => Show (InstDecl a) where
+    show = showGhc
+
+instance (Outputable a) => Show (Located a) where
+    show (GHC.L l x) = "(" ++ showGhc l ++ ":" ++ showGhc x ++ ")"

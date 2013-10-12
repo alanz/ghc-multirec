@@ -13,12 +13,14 @@ import Control.Arrow ((>>>))
 import Control.Monad ((>=>))
 import Data.Maybe (fromJust)
 import Generics.MultiRec.Base
+import Generics.MultiRec.Compos
 import qualified Generics.MultiRec.Show as GS
 import Generics.MultiRec.Zipper
 import System.IO
 import Control.Monad
 
 import Generics.MultiRec.GHC.GHCTHUseAlt
+import Generics.MultiRec.GHC.Instances
 
 import Bag
 import Bag(Bag,bagToList)
@@ -47,6 +49,7 @@ import qualified Exception             as GHC
 import qualified FastString            as GHC
 import qualified GHC                   as GHC
 import qualified HscTypes              as GHC
+import qualified HsLit                 as GHC
 import qualified Lexer                 as GHC
 import qualified MonadUtils            as GHC
 import qualified Outputable            as GHC
@@ -61,11 +64,38 @@ import qualified StringBuffer          as GHC
 
 main = do
   Just renamed <- getStuff
-  let foo = testZipper renamed
+  let renamed' = addOne renamed
+  let foo = testZipper renamed'
   -- putStrLn $ "\nfoo=" ++ (SYB.showData SYB.Renamer 0 $ foo)
   putStrLn $ "\nfoo=" ++ showGhc foo
+  putStrLn $ "\nrenamed'=" ++ showGhc renamed'
   startEditor renamed
   return ()
+
+-- ---------------------------------------------------------------------
+-- playing with compos
+{-
+-- | Renaming variables using 'compos'
+
+renameVar :: Expr String -> Expr String
+renameVar = renameVar' Expr
+  where
+    renameVar' :: AST String a -> a -> a
+    renameVar' Var x = x ++ "_"
+    renameVar' p   x = compos renameVar' p x
+
+-- | Test for 'renameVar'
+
+testRename :: Expr String
+testRename = renameVar example
+-}
+
+addOne :: GHC.RenamedSource -> GHC.RenamedSource
+addOne = addOne' RenamedSourceIt
+  where
+    addOne' :: AST a -> a -> a
+    addOne' OverLitValIt (GHC.HsIntegral x) = (GHC.HsIntegral (x+1))
+    addOne' p x = compos addOne' p x
 
 -- ---------------------------------------------------------------------
 
@@ -145,7 +175,8 @@ testZipper renamed@(g,i,e,d) =
   where
     solve :: AST ix -> ix -> ix
     -- solve OveerLit _ = Const 42
-    solve HsValBindsLRIt (GHC.ValBindsOut [x1,x2] y) = GHC.ValBindsOut [x1] y
+    -- solve HsValBindsLRIt (GHC.ValBindsOut [x1,x2] y) = GHC.ValBindsOut [x1] y
+    solve HsValBindsLRIt (GHC.ValBindsOut [x1,x2] y) = GHC.ValBindsOut [x2] y
     solve _    x = error "foo" --  x
 
 -- ---------------------------------------------------------------------
@@ -179,27 +210,12 @@ getStuff =
 
         target <- GHC.guessTarget targetFile Nothing
         GHC.setTargets [target]
-        GHC.liftIO $ putStrLn $ "targets set"
         GHC.load GHC.LoadAllTargets -- Loads and compiles, much as calling make
-        GHC.liftIO $ putStrLn $ "targets loaded"
         modSum <- GHC.getModSummary $ GHC.mkModuleName "Foo"
-        GHC.liftIO $ putStrLn $ "got modsummary"
         p <- GHC.parseModule modSum
-        GHC.liftIO $ putStrLn $ "parsed"
-
         t <- GHC.typecheckModule p
-        GHC.liftIO $ putStrLn $ "type checked"
-        d <- GHC.desugarModule t
-        l <- GHC.loadModule d
-        n <- GHC.getNamesInScope
-        c <- return $ GHC.coreModule d
 
         GHC.setContext [GHC.IIModule (GHC.moduleName $ GHC.ms_mod modSum)]
-
-        -- GHC.setContext [GHC.IIModule (GHC.ms_mod modSum)]
-        inscopes <- GHC.getNamesInScope
-        GHC.liftIO $ putStrLn $ "got inscopes"
-
 
         g <- GHC.getModuleGraph
         gs <- mapM GHC.showModule g
@@ -211,8 +227,8 @@ getStuff =
         -- RenamedSource -----------------------------------------------
         GHC.liftIO $ putStrLn $ "about to show renamedSource"
 
-        GHC.liftIO (putStrLn $ "renamedSource(Ppr)=" ++ (showGhc $ GHC.tm_renamed_source t))
-        GHC.liftIO (putStrLn $ "\nrenamedSource(showData)=" ++ (SYB.showData SYB.Renamer 0 $ GHC.tm_renamed_source t))
+        -- GHC.liftIO (putStrLn $ "renamedSource(Ppr)=" ++ (showGhc $ GHC.tm_renamed_source t))
+        -- GHC.liftIO (putStrLn $ "\nrenamedSource(showData)=" ++ (SYB.showData SYB.Renamer 0 $ GHC.tm_renamed_source t))
 
         return (GHC.tm_renamed_source t)
 
@@ -220,3 +236,4 @@ getStuff =
 
 pwd :: IO FilePath
 pwd = getCurrentDirectory
+

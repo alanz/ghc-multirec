@@ -11,7 +11,8 @@
 module Generics.MultiRec.GHC.GHCTHUseAlt where
 
 import Generics.MultiRec.Base
-import Generics.MultiRec.TH.Alt
+-- import Generics.MultiRec.TH.Alt
+import Generics.MultiRec.TH
 
 -- GHC stuff
 import Bag
@@ -36,122 +37,122 @@ import SrcLoc
 
 -- ** Index type
 
-{-
 data AST :: * -> * -> * where
-  -- HsGroup    :: AST (GHC.HsGroup a)
-  -- HsValBinds :: AST (GHC.HsValBinds a)
-  -- HsBindLR   :: AST a (HsBindLR Name Name)
-  OverLitVal :: AST a (OverLitVal)
-  -- HsExpr     :: AST a (HsExpr Name)
-  -- HsIPName     :: AST a  HsIPName
+  -- ABExport        :: AST a (ABExport Name)
+{-
+  ArithSeqInfoIt    :: AST a (ArithSeqInfo Name)
+  BoxityIt          :: AST a (Boxity)
+  FixityDirectionIt :: AST a (FixityDirection)
+  FixityIt          :: AST a (HsSyn.Fixity)
+  FractionalLitIt   :: AST a (FractionalLit)
+  GRHSsIt           :: AST a (GRHSs Name)
+  GRHSIt            :: AST a (GRHS Name)
+  HsArrAppTypeIt    :: AST a (HsArrAppType)
+  HsBindLRIt        :: AST a (HsBindLR Name Name)
+  HsBracketIt       :: AST a (HsBracket Name)
+  HsGroupIt         :: AST a (HsGroup Name)
+  HsIPBindsIt       :: AST a (HsIPBinds Name)
+  HsIPNameIt        :: AST a (HsIPName)
 -}
-data AST :: * -> * where
-  ABExportIt        :: AST (ABExport Name)
-  ArithSeqInfoIt    :: AST (ArithSeqInfo Name)
-  BoxityIt          :: AST (Boxity)
-  FixityDirectionIt :: AST (FixityDirection)
-  FixityIt          :: AST (HsSyn.Fixity)
-  FractionalLitIt   :: AST (FractionalLit)
-  GRHSsIt           :: AST (GRHSs Name)
-  GRHSIt            :: AST (GRHS Name)
-  HsArrAppTypeIt    :: AST (HsArrAppType)
-  HsBindLRIt        :: AST (HsBindLR Name Name)
-  HsBracketIt       :: AST (HsBracket Name)
-  HsGroupIt         :: AST (HsGroup Name)
-  HsIPBindsIt       :: AST (HsIPBinds Name)
-  HsIPNameIt        :: AST (HsIPName)
-  HsLitIt           :: AST (HsLit)
-  HsLocalBindsIt    :: AST (HsLocalBinds Name)
-  HsMatchContextIt  :: AST (HsMatchContext Name)
-  HsOverLitIt       :: AST (HsOverLit Name)
-  HsQuasiQuoteIt    :: AST (HsQuasiQuote Name)
-  HsRecordBindsIt   :: AST (HsRecordBinds Name)
-  HsSpliceIt        :: AST (HsSplice Name)
-  HsStmtContextIt   :: AST (HsStmtContext Name)
-  HsValBindsLRIt    :: AST (HsValBindsLR Name Name)
-  IEIt              :: AST (IE Name)
-  ImportDeclIt      :: AST (ImportDecl Name)
-  LGRHSIt           :: AST (LGRHS Name)
-  LHsBindLRIt       :: AST (LHsBindLR Name Name)
-  LHsBindsIt        :: AST (LHsBinds Name)
-  LHsCmdTopIt       :: AST (LHsCmdTop Name)
-  LHsDeclIt         :: AST (LHsDecl Name)
-  LHsExprIt         :: AST (LHsExpr Name)
-  LHsTypeIt         :: AST (LHsType Name)
-  LIEIt             :: AST (LIE Name)
-  LIPBindIt         :: AST (LIPBind Name)
-  LImportDeclIt     :: AST (LImportDecl Name)
-  LInstDeclIt       :: AST ( LInstDecl Name)
-  LMatchIt          :: AST (LMatch Name)
-  LPatIt            :: AST (LPat Name)
-  LSigIt            :: AST (LSig Name)
-  LStmtLRIt         :: AST (LStmtLR Name Name)
+  -- HsLit             :: AST a (HsSyn.HsLit)
+{-
+  HsLocalBindsIt    :: AST a (HsLocalBinds Name)
+  HsMatchContextIt  :: AST a (HsMatchContext Name)
+  HsOverLitIt       :: AST a (HsOverLit Name)
+  HsQuasiQuoteIt    :: AST a (HsQuasiQuote Name)
+  HsRecordBindsIt   :: AST a (HsRecordBinds Name)
+  HsSpliceIt        :: AST a (HsSplice Name)
+  HsStmtContextIt   :: AST a (HsStmtContext Name)
+  HsValBindsLRIt    :: AST a (HsValBindsLR Name Name)
+  IEIt              :: AST a (IE Name)
+  ImportDeclIt      :: AST a (ImportDecl Name)
+  LGRHSIt           :: AST a (LGRHS Name)
+  LHsBindLRIt       :: AST a (LHsBindLR Name Name)
+  LHsBindsIt        :: AST a (LHsBinds Name)
+  LHsCmdTopIt       :: AST a (LHsCmdTop Name)
+  LHsDeclIt         :: AST a (LHsDecl Name)
+  LHsExprIt         :: AST a (LHsExpr Name)
+  LHsTypeIt         :: AST a (LHsType Name)
+-}
+  LIEIt             :: AST a (LIE Name)
+{-
+  LIPBindIt         :: AST a (LIPBind Name)
+  LImportDeclIt     :: AST a (LImportDecl Name)
+  LInstDeclIt       :: AST a ( LInstDecl Name)
+  LMatchIt          :: AST a (LMatch Name)
+  LPatIt            :: AST a (LPat Name)
+  LSigIt            :: AST a (LSig Name)
+  LStmtLRIt         :: AST a (LStmtLR Name Name)
 
-  LFixitySigIt      :: AST (LFixitySig Name)
-  LAnnDeclIt        :: AST (LAnnDecl Name)
-  LDefaultDeclIt    :: AST (LDefaultDecl Name)
-  LDerivDeclIt      :: AST (LDerivDecl Name)
-  LForeignDeclIt    :: AST (LForeignDecl Name)
-  LRuleDeclIt       :: AST (LRuleDecl Name)
-  LTyClDeclIt       :: AST (LTyClDecl Name)
-  LVectDeclIt       :: AST (LVectDecl Name)
-  LWarnDeclIt       :: AST (LWarnDecl Name)
-  LDocDecl          :: AST LDocDecl
+  LFixitySigIt      :: AST a (LFixitySig Name)
+  LAnnDeclIt        :: AST a (LAnnDecl Name)
+  LDefaultDeclIt    :: AST a (LDefaultDecl Name)
+  LDerivDeclIt      :: AST a (LDerivDecl Name)
+  LForeignDeclIt    :: AST a (LForeignDecl Name)
+  LRuleDeclIt       :: AST a (LRuleDecl Name)
+  LTyClDeclIt       :: AST a (LTyClDecl Name)
+  LVectDeclIt       :: AST a (LVectDecl Name)
+  LWarnDeclIt       :: AST a (LWarnDecl Name)
+  LDocDecl          :: AST a LDocDecl
 
-  LocatedIt         :: AST (Located Name)
+  LocatedIt         :: AST a (Located Name)
 
 
-  MatchGroupIt      :: AST (MatchGroup Name)
-  MatchIt           :: AST (Match Name)
-  NameIt            :: AST (Name)
-  OverLitValIt      :: AST (OverLitVal)
-  PatIt             :: AST (Pat Name)
-  PostTcExprIt      :: AST PostTcExpr
+  MatchGroupIt      :: AST a (MatchGroup Name)
+  MatchIt           :: AST a (Match Name)
+  NameIt            :: AST a (Name)
+  OverLitValIt      :: AST a (OverLitVal)
+  PatIt             :: AST a (Pat Name)
+  PostTcExprIt      :: AST a PostTcExpr
   -- PostTcTypeIt      :: AST PostTcType
-  RenamedSourceIt   :: AST RenamedSource
-  StmtLRIt          :: AST (StmtLR Name Name)
-  SyntaxExprIt      :: AST (SyntaxExpr Name)
-  TcEvBindsIt       :: AST (TcEvBinds)
-  TickishIt         :: AST (Tickish Name)
+  RenamedSourceIt   :: AST a RenamedSource
+  StmtLRIt          :: AST a (StmtLR Name Name)
+  SyntaxExprIt      :: AST a (SyntaxExpr Name)
+  TcEvBindsIt       :: AST a (TcEvBinds)
+  TickishIt         :: AST a (Tickish Name)
 
   -- Maybe elements
-  MaybeBoolLIENamesIt :: AST (Maybe ((Bool, [LIE Name])))
+  MaybeBoolLIENamesIt :: AST a (Maybe ((Bool, [LIE Name])))
 
   -- List elements
-  ABExportListIt    :: AST [ABExport Name]
-  LGRHSListIt       :: AST [LGRHS Name]
-  LHsBindLRListIt   :: AST [LHsBindLR Name Name]
-  LHsCmdTopListIt   :: AST [LHsCmdTop Name]
-  LHsDeclListIt     :: AST [LHsDecl Name]
-  LHsExprListIt     :: AST [LHsExpr Name]
-  LIEListIt         :: AST [LIE Name]
-  LIPBindListIt     :: AST [LIPBind Name]
-  LImportDeclListIt :: AST [LImportDecl Name]
-  LInstDeclListIt   :: AST [LInstDecl Name]
-  LMatchListIt      :: AST [LMatch Name]
-  LPatListIt        :: AST [LPat Name]
-  LSigListIt        :: AST [LSig Name]
-  LStmtListIt       :: AST [LStmt Name]
-  LTyClDeclListIt   :: AST [LTyClDecl Name]
+  ABExportListIt    :: AST a [ABExport Name]
+  LGRHSListIt       :: AST a [LGRHS Name]
+  LHsBindLRListIt   :: AST a [LHsBindLR Name Name]
+  LHsCmdTopListIt   :: AST a [LHsCmdTop Name]
+  LHsDeclListIt     :: AST a [LHsDecl Name]
+  LHsExprListIt     :: AST a [LHsExpr Name]
+  LIEListIt         :: AST a [LIE Name]
+  LIPBindListIt     :: AST a [LIPBind Name]
+  LImportDeclListIt :: AST a [LImportDecl Name]
+  LInstDeclListIt   :: AST a [LInstDecl Name]
+  LMatchListIt      :: AST a [LMatch Name]
+  LPatListIt        :: AST a [LPat Name]
+  LSigListIt        :: AST a [LSig Name]
+  LStmtListIt       :: AST a [LStmt Name]
+  LTyClDeclListIt   :: AST a [LTyClDecl Name]
   -- RecBindsListIt    :: AST [HsRecField Name (GenLocated SrcSpan (HsExpr Name))]
-  RecBindsListIt    :: AST [HsRecField Name (LHsExpr Name)]
-  ValBindsOutListIt :: AST [(RecFlag, LHsBinds Name)]
+  RecBindsListIt    :: AST a [HsRecField Name (LHsExpr Name)]
+  ValBindsOutListIt :: AST a [(RecFlag, LHsBinds Name)]
 
-  LTyClDeclLitListIt :: AST [[LTyClDecl Name]]
-  LDerivDeclListIt   :: AST [LDerivDecl Name]
-  LFixitySigLitsIt   :: AST [LFixitySig Name]
-  LDefaultDeclListIt :: AST [LDefaultDecl Name]
-  LForeignDeclListIt :: AST [LForeignDecl Name]
-  LWarnDeclListIt    :: AST [LWarnDecl Name]
-  LAnnDeclListIt     :: AST [LAnnDecl Name]
-  LRuleDeclListIt    :: AST [LRuleDecl Name]
-  LVectDeclListIt    :: AST [LVectDecl Name]
-  LDocDeclListIt     :: AST [LDocDecl]
+  LTyClDeclLitListIt :: AST a [[LTyClDecl Name]]
+  LDerivDeclListIt   :: AST a [LDerivDecl Name]
+  LFixitySigLitsIt   :: AST a [LFixitySig Name]
+  LDefaultDeclListIt :: AST a [LDefaultDecl Name]
+  LForeignDeclListIt :: AST a [LForeignDecl Name]
+  LWarnDeclListIt    :: AST a [LWarnDecl Name]
+  LAnnDeclListIt     :: AST a [LAnnDecl Name]
+  LRuleDeclListIt    :: AST a [LRuleDecl Name]
+  LVectDeclListIt    :: AST a [LVectDecl Name]
+  LDocDeclListIt     :: AST a [LDocDecl]
 
 
   -- Tuple elements
-  TupRecFlagLHsBindsIt :: AST (RecFlag, LHsBinds Name)
+  TupRecFlagLHsBindsIt :: AST a (RecFlag, LHsBinds Name)
+-}
 
+$(deriveAll ''AST)
+
+{-
 $(deriveEverything
   (DerivOptions {
    familyTypes =
@@ -265,5 +266,7 @@ $(deriveEverything
   }
  ))
 
-type instance PF AST = ThePF
+type instance PF (AST a) = ThePF
+-}
 
+-- ---------------------------------------------------------------------

@@ -43,6 +43,7 @@ executable ghc-zipper
                       , ghc-syb-utils
                       , syb
                       , directory
+                      , Annotations
 
   hs-source-dirs:      ./src
                        ./examples

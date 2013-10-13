@@ -227,6 +227,54 @@ instance (OutputableBndr a) => Show (AnnDecl a) where
 instance (OutputableBndr a) => Show (FixitySig a) where
     show = showGhc
 
--- instance Show (GHC.HsRecField a e) where
---    -- show (HsRecField n a p) = "(HsRecField " ++ showGhc n ++ " " ++ showGhc a ++ " " ++ showGhc p ++ ")"
---    show = showGhc
+instance Show HsTyLit where
+    show = showGhc
+
+
+instance (OutputableBndr a) => Outputable (ConDeclField a) where
+    ppr (ConDeclField n t d) = ptext (sLit "ConDeclField") <+> ppr n <+> ppr t <+> ppr d
+
+instance (OutputableBndr a) => Show (ConDeclField a) where
+    show = showGhc
+
+instance Show HsBang where
+    show = showGhc
+
+instance Outputable HsTyWrapper where
+    ppr (WpKiApps ks) = ptext (sLit "WpKiApps") <+> ppr ks
+
+instance Show HsTyWrapper where
+    show = showGhc
+
+
+instance Outputable HsTupleSort where
+    ppr HsUnboxedTuple           = ptext (sLit "HsUnboxedTuple")
+    ppr HsBoxedTuple             = ptext (sLit "HsBoxedTuple")
+    ppr HsConstraintTuple        = ptext (sLit "HsConstraintTuple")
+    ppr HsBoxedOrConstraintTuple = ptext (sLit "HsBoxedOrConstraintTuple")
+
+instance Show HsTupleSort where
+    show = showGhc
+
+instance Outputable HsExplicitFlag where
+    ppr Explicit = ptext (sLit "Explicit")
+    ppr Implicit = ptext (sLit "Implicit")
+
+instance Show HsExplicitFlag where
+    show = showGhc
+
+instance (OutputableBndr a) => Show (HsTyDefn a) where
+    show = showGhc
+
+instance (OutputableBndr a) => Show (LHsTyVarBndrs a) where
+    show = showGhc
+
+instance Outputable FamilyFlavour where
+    ppr TypeFamily = ptext (sLit "TypeFamily")
+    ppr DataFamily = ptext (sLit "DataFamily")
+
+instance Show FamilyFlavour where
+    show = showGhc
+
+instance Show HsIPName where
+    show = showGhc

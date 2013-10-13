@@ -1,2 +1,2 @@
 :set -package ghc
-:set -ddump-splices
+-- :set -ddump-splices

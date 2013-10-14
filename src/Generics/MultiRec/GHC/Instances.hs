@@ -9,11 +9,14 @@ import CoreSyn
 import CostCentre
 import DynFlags
 import FastString
+import ForeignCall
 import GHC
 import HsSyn
+import GHC.IORef
 import Name
 import Outputable
 import TcEvidence
+import TyCon
 import TypeRep
 import UniqFM
 import Var
@@ -278,3 +281,72 @@ instance Show FamilyFlavour where
 
 instance Show HsIPName where
     show = showGhc
+
+instance (OutputableBndr a) => Show (RuleBndr a) where
+    show = showGhc
+
+-- TODO: this is probably not adequate
+instance Outputable (IORef a) where
+    ppr _ = ptext (sLit "IORef value")
+
+instance Show (IORef a) where
+    show = showGhc
+
+instance (OutputableBndr a) => Show (HsTyVarBndr a) where
+    show = showGhc
+
+instance (OutputableBndr a) => Show (FamInstDecl a) where
+    show = showGhc
+
+instance Show WarningTxt where
+    show = showGhc
+
+instance Show ClsInst where
+    show = showGhc
+
+instance Show Class where
+    show = showGhc
+
+instance Show Activation where
+    show = showGhc
+
+instance Show CType where
+    show = showGhc
+
+instance Show NewOrData where
+    show = showGhc
+
+instance Outputable CImportSpec where
+    ppr (CLabel s)    = ptext (sLit "CLabel") <+> ppr s
+    ppr (CFunction t) = ptext (sLit "CFunction") <+> ppr t
+    ppr CWrapper      = ptext (sLit "CWrapper")
+
+instance Outputable CCallTarget where
+    ppr (StaticTarget s p b) = ptext (sLit "StaticTarget") <+> ppr s <+> ppr p <+> ppr b
+    ppr DynamicTarget = ptext (sLit "DynamicTarget")
+
+instance Show CImportSpec where
+    show = showGhc
+
+instance Show Header where
+    show = showGhc
+
+instance Show CCallConv where
+    show = showGhc
+
+instance Show CExportSpec where
+    show = showGhc
+
+instance (Outputable a) => Show (ResType a) where
+    show = showGhc
+
+instance Show InlinePragma where
+    show = showGhc
+
+instance Show CoAxiom where
+    show = showGhc
+
+
+
+
+
